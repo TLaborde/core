@@ -2711,6 +2711,12 @@
         }
       }
     },
+    "ichijoenergy": {
+      "name": "Ichijo Energy",
+      "integration_type": "hub",
+      "config_flow": true,
+      "iot_class": "local_polling"
+    },
     "idteck_prox": {
       "name": "IDTECK Proximity Reader",
       "integration_type": "hub",

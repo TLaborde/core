@@ -1,0 +1,13 @@
+{
+  "domain": "ichijoenergy",
+  "name": "Ichijo Energy",
+  "codeowners": ["@tlaborde"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/ichijoenergy",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": []
+}

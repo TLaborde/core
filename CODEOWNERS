@@ -658,6 +658,8 @@ build.json @home-assistant/supervisor
 /tests/components/iaqualink/ @flz
 /homeassistant/components/ibeacon/ @bdraco
 /tests/components/ibeacon/ @bdraco
+/homeassistant/components/ichijoenergy/ @tlaborde
+/tests/components/ichijoenergy/ @tlaborde
 /homeassistant/components/icloud/ @Quentame @nzapponi
 /tests/components/icloud/ @Quentame @nzapponi
 /homeassistant/components/idasen_desk/ @abmantis
