@@ -17,5 +17,36 @@
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
     }
+  },
+  "entity": {
+    "sensor": {
+      "solar_power": {
+        "name": "Solar power"
+      },
+      "battery_power": {
+        "name": "Battery power"
+      },
+      "home_consumption": {
+        "name": "Home use"
+      },
+      "grid_use": {
+        "name": "Grid use"
+      },
+      "lifetime_production_p1": {
+        "name": "Lifetime production of P1"
+      },
+      "lifetime_production_p2": {
+        "name": "Lifetime production of P2"
+      },
+      "today_production": {
+        "name": "Production of today"
+      },
+      "today_production_p1": {
+        "name": "Production of today from P1"
+      },
+      "today_production_p2": {
+        "name": "Production of today from P2"
+      }
+    }
   }
 }
