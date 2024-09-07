@@ -1,77 +1,158 @@
-"""Representation of an Ichijo Energy sensor."""
+"""The read-only sensors for IchijoEnergy local API integration."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
+    StateType,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.const import UnitOfPower
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
-from .coordinator import IchijoEnergyDataUpdateCoordinator
+from . import IchijoEnergyConfigEntry, IchijoEnergyData
+from .api import IchijoEnergyOutputData
+from .coordinator import IchijoEnergyDataCoordinator
+from .entity import IchijoEnergyEntity
 
 
-class IchijoEnergySensor(
-    CoordinatorEntity[IchijoEnergyDataUpdateCoordinator], SensorEntity
+@dataclass(frozen=True, kw_only=True)
+class IchijoEnergyLocalApiSensorDescription(SensorEntityDescription):
+    """Describes Ichijo Energy sensor entity."""
+
+    value_fn: Callable[[IchijoEnergyOutputData], float | None]
+
+
+SENSORS: tuple[IchijoEnergyLocalApiSensorDescription, ...] = (
+    IchijoEnergyLocalApiSensorDescription(
+        key="solar_power",
+        translation_key="solar_power",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda c: c.solar,
+    ),
+    IchijoEnergyLocalApiSensorDescription(
+        key="battery_power",
+        translation_key="battery_power",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda c: c.battery,
+    ),
+    IchijoEnergyLocalApiSensorDescription(
+        key="home_consumption",
+        translation_key="home_consumption",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda c: c.home,
+    ),
+    IchijoEnergyLocalApiSensorDescription(
+        key="grid_use",
+        translation_key="grid_use",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda c: c.grid,
+    ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="grid_power",
+    #    translation_key="grid_power",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.te1 + c.te2,
+    # ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="lifetime_production_p1",
+    #    translation_key="lifetime_production_p1",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.te1,
+    # ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="lifetime_production_p2",
+    #    translation_key="lifetime_production_p2",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.te2,
+    # ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="today_production",
+    #    translation_key="today_production",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.e1 + c.e2,
+    # ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="today_production_p1",
+    #    translation_key="today_production_p1",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.e1,
+    # ),
+    # IchijoEnergyLocalApiSensorDescription(
+    #    key="today_production_p2",
+    #    translation_key="today_production_p2",
+    #    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    #    device_class=SensorDeviceClass.ENERGY,
+    #    state_class=SensorStateClass.TOTAL_INCREASING,
+    #    value_fn=lambda c: c.e2,
+    # ),
+)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: IchijoEnergyConfigEntry,
+    add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the sensor platform."""
+    config = config_entry.runtime_data
+
+    add_entities(
+        IchijoEnergySensorWithDescription(
+            data=config,
+            entity_description=desc,
+        )
+        for desc in SENSORS
+    )
+
+
+class IchijoEnergySensorWithDescription(
+    CoordinatorEntity[IchijoEnergyDataCoordinator], IchijoEnergyEntity, SensorEntity
 ):
-    """Representation of an Ichijo Energy sensor."""
+    """Base sensor to be used with description."""
 
+    entity_description: IchijoEnergyLocalApiSensorDescription
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: IchijoEnergyDataUpdateCoordinator,
-        sensor_type: str,
-        entry: ConfigEntry,
+        data: IchijoEnergyData,
+        entity_description: IchijoEnergyLocalApiSensorDescription,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._sensor_type = sensor_type
-        self._attr_unique_id = f"{entry.entry_id}_{sensor_type}"
-        self._attr_name = f"{sensor_type.replace('_', ' ').title()}"
+        super().__init__(data.coordinator)
+        IchijoEnergyEntity.__init__(self, data)
+        self.entity_description = entity_description
+        self._attr_unique_id = f"{data.device_id}_{entity_description.key}"
 
     @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information about this entity."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, "id" + str(self._attr_unique_id))},
-            name="Ichijo Energy Device",
-            manufacturer="Ichijo",
-            # Add more device info as needed
-        )
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the state of the sensor."""
-        return self.coordinator.data.get(self._sensor_type)
-
-    @property
-    def native_unit_of_measurement(self) -> str | None:
-        """Return the unit of measurement."""
-        if self._sensor_type == "energy_consumption":
-            return "W"
-        if self._sensor_type == "battery_state":
-            return "%"
-        if self._sensor_type == "solar_output":
-            return "W"
-        return None
-
-    @property
-    def device_class(self) -> SensorDeviceClass | None:
-        """Return the device class of the sensor."""
-        if self._sensor_type == "energy_consumption":
-            return SensorDeviceClass.POWER
-        if self._sensor_type == "battery_state":
-            return SensorDeviceClass.BATTERY
-        if self._sensor_type == "solar_output":
-            return SensorDeviceClass.POWER
-        return None
-
-    @property
-    def state_class(self) -> SensorStateClass | None:
-        """Return the state class of the sensor."""
-        if self._sensor_type in ["energy_consumption", "solar_output", "battery_state"]:
-            return SensorStateClass.MEASUREMENT
-        return None
+    def native_value(self) -> StateType:
+        """Return value of sensor."""
+        return self.entity_description.value_fn(self.coordinator.data.output_data)

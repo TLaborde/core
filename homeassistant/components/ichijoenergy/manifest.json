@@ -1,8 +1,8 @@
 {
   "domain": "ichijoenergy",
   "name": "Ichijo Energy",
-  "codeowners": ["@tlaborde"],
-  "config_flow": true,
+  "codeowners": ["@lucpitipuis"],
+  "config_flow": false,
   "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/ichijoenergy",
   "homekit": {},

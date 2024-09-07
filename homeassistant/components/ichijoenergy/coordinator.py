@@ -1,32 +1,45 @@
-"""Data update coordinator for Ichijo Energy."""
+"""The coordinator for IchijoEnergy local API integration."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import timedelta
-import logging
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN
+from .api import IchijoEnergyAPI, IchijoEnergyOutputData
+from .const import LOGGER
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass
+class IchijoEnergySensorData:
+    """Representing different IchijoEnergy sensor data."""
+
+    output_data: IchijoEnergyOutputData
 
 
-class IchijoEnergyDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching Ichijo Energy data."""
+class IchijoEnergyDataCoordinator(DataUpdateCoordinator[IchijoEnergySensorData]):
+    """Coordinator used for all sensors."""
 
-    def __init__(self, hass: HomeAssistant, api) -> None:
-        """Initialize the coordinator."""
+    def __init__(self, hass: HomeAssistant, api: IchijoEnergyAPI) -> None:
+        """Initialize my coordinator."""
         super().__init__(
             hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=30),  # Adjust as needed
+            LOGGER,
+            name="IchijoEnergy Data",
+            update_interval=timedelta(seconds=12),
         )
         self.api = api
 
-    async def _async_update_data(self):
-        """Fetch data from API."""
-        try:
-            return await self.api.get_data()
-        except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+    async def _async_setup(self) -> None:
+        # try:
+        #    max_power = (await self.api.get_device_info()).maxPower
+        # except (ConnectionError, TimeoutError):
+        #    raise UpdateFailed from None
+        # self.api.max_power = max_power
+        pass
+
+    async def _async_update_data(self) -> IchijoEnergySensorData:
+        output_data = await self.api.get_output_data()
+        return IchijoEnergySensorData(output_data=output_data)
