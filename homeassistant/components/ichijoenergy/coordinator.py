@@ -28,7 +28,7 @@ class IchijoEnergyDataCoordinator(DataUpdateCoordinator[IchijoEnergySensorData])
             hass,
             LOGGER,
             name="IchijoEnergy Data",
-            update_interval=timedelta(seconds=12),
+            update_interval=timedelta(seconds=10),
         )
         self.api = api
 

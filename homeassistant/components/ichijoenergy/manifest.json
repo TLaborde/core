@@ -2,7 +2,7 @@
   "domain": "ichijoenergy",
   "name": "Ichijo Energy",
   "codeowners": ["@lucpitipuis"],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/ichijoenergy",
   "homekit": {},

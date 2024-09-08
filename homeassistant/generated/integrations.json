@@ -2714,7 +2714,7 @@
     "ichijoenergy": {
       "name": "Ichijo Energy",
       "integration_type": "hub",
-      "config_flow": false,
+      "config_flow": true,
       "iot_class": "local_polling"
     },
     "idteck_prox": {

@@ -1,51 +1,103 @@
 {
   "config": {
     "step": {
-      "user": {
-        "data": {
-          "host": "[%key:common::config_flow::data::host%]",
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]"
-        }
+      "confirm": {
+        "description": "[%key:common::config_flow::description::confirm_setup%]"
       }
     },
-    "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
-    },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",
+      "no_devices_found": "[%key:common::config_flow::abort::no_devices_found%]"
     }
   },
   "entity": {
     "sensor": {
-      "solar_power": {
-        "name": "Solar power"
+      "power_production": {
+        "name": "Current solar production"
       },
-      "battery_power": {
-        "name": "Battery power"
+      "energy_production_today": {
+        "name": "Daily solar production"
       },
-      "home_consumption": {
-        "name": "Home use"
+      "energy_production_month": {
+        "name": "Monthly solar production"
       },
-      "grid_use": {
-        "name": "Grid use"
+      "energy_production_total": {
+        "name": "Total solar production"
       },
-      "lifetime_production_p1": {
-        "name": "Lifetime production of P1"
+      "power_export": {
+        "name": "Current power sold"
       },
-      "lifetime_production_p2": {
-        "name": "Lifetime production of P2"
+      "energy_export_today": {
+        "name": "Daily energy sold"
       },
-      "today_production": {
-        "name": "Production of today"
+      "energy_export_month": {
+        "name": "Monthly energy sold"
       },
-      "today_production_p1": {
-        "name": "Production of today from P1"
+      "energy_export_total": {
+        "name": "Total energy sold"
       },
-      "today_production_p2": {
-        "name": "Production of today from P2"
+      "power_import": {
+        "name": "Current power purchased"
+      },
+      "energy_import_today": {
+        "name": "Daily energy purchased"
+      },
+      "energy_import_month": {
+        "name": "Monthly energy purchased"
+      },
+      "energy_import_total": {
+        "name": "Total energy purchased"
+      },
+      "power_consumption": {
+        "name": "Current power consumed"
+      },
+      "energy_consumption_today": {
+        "name": "Daily energy consumed"
+      },
+      "energy_consumption_month": {
+        "name": "Monthly energy consumed"
+      },
+      "energy_consumption_total": {
+        "name": "Total energy consumed"
+      },
+      "power_charge": {
+        "name": "Current battery charge"
+      },
+      "energy_power_charge_today": {
+        "name": "Daily battery energy charge"
+      },
+      "energy_power_charge_month": {
+        "name": "Monthly battery energy charge"
+      },
+      "energy_power_charge_total": {
+        "name": "Total battery energy charge"
+      },
+      "power_discharge": {
+        "name": "Current battery discharge"
+      },
+      "energy_power_discharge_today": {
+        "name": "Daily battery energy discharge"
+      },
+      "energy_power_discharge_month": {
+        "name": "Monthly battery energy discharge"
+      },
+      "energy_power_discharge_total": {
+        "name": "Total battery energy discharge"
+      },
+      "performance_ratio": {
+        "name": "Current performance ratio for the solar panels"
+      },
+      "self_sufficiency_today": {
+        "name": "Daily self sufficiency ratio"
+      },
+      "self_sufficiency_month": {
+        "name": "Monthly self sufficiency ratio"
+      },
+      "self_sufficiency_total": {
+        "name": "Total self sufficiency ratio"
+      },
+      "battery_level": {
+        "name": "Current battery level"
       }
     }
   }

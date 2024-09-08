@@ -263,6 +263,7 @@ FLOWS = {
         "ialarm",
         "iaqualink",
         "ibeacon",
+        "ichijoenergy",
         "icloud",
         "idasen_desk",
         "ifttt",

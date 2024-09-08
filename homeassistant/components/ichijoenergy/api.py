@@ -7,6 +7,9 @@ import os
 import aiohttp
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
+import requests
+
+# from .const import LOGGER
 
 
 class IchijoEnergyAPI:
@@ -16,6 +19,18 @@ class IchijoEnergyAPI:
 
     def __init__(self) -> None:
         "Get basic values."
+
+    @staticmethod
+    def discover() -> bool:
+        """Check if the service is available on the network."""
+        try:
+            response = requests.get(IchijoEnergyAPI.URL, timeout=3)
+            if response.status_code == 200:
+                return True
+        except requests.RequestException:
+            # LOGGER.exception(err)
+            pass
+        return False
 
     async def get_output_data(self):
         """Retrieve data from network."""
@@ -27,9 +42,10 @@ class IchijoEnergyAPI:
         }
         stringify = json.dumps(payload)
         enc = AESCipher.encrypt(stringify)
-        async with aiohttp.ClientSession().post(
-            IchijoEnergyAPI.URL, data=json.dumps(enc)
-        ) as resp:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(IchijoEnergyAPI.URL, data=json.dumps(enc)) as resp,
+        ):
             r = await resp.text()
         answer = json.loads(r)
         dec = AESCipher.decrypt(answer["p1"], answer["p2"])
@@ -42,24 +58,60 @@ class IchijoEnergyOutputData:
     def __init__(self, result: str) -> None:
         """Set basic format."""
         data = json.loads(result)
-        current_generation = float(
-            data["res_data"]["current"]["Genaration"]  # codespell:ignore
+        data = data["res_data"]["data"]
+
+        # solar
+        self.power_production = float(
+            data["current"]["Genaration"]  # codespell:ignore
         )
-        current_export = float(data["res_data"]["current"]["Export"])
-        current_purchase = float(data["res_data"]["current"]["Purchase"])
-        current_consumption = float(data["res_data"]["current"]["Consumption"])
-        current_charge = float(data["res_data"]["current"]["Charge"])
-        current_discharge = float(data["res_data"]["current"]["Discharge"])
-        if current_charge > 0:
-            self.battery = current_charge
-        else:
-            self.battery = -current_discharge
-        if current_export > 0:
-            self.grid = current_export
-        else:
-            self.grid = current_purchase
-        self.home = current_consumption
-        self.solar = current_generation
+        self.energy_production_today = float(
+            data["today"]["Genaration"]  # codespell:ignore
+        )
+        self.energy_production_month = float(
+            data["month"]["Genaration"]  # codespell:ignore
+        )  # codespell:ignore
+        self.energy_production_total = float(
+            data["lifetime"]["Genaration"]  # codespell:ignore
+        )
+
+        # sold to the grid
+        self.power_export = float(data["current"]["Export"])
+        self.energy_export_today = float(data["today"]["Export"])
+        self.energy_export_month = float(data["month"]["Export"])
+        self.energy_export_total = float(data["lifetime"]["Export"])
+
+        # purchased from the grid
+        self.power_import = float(data["current"]["Purchase"])
+        self.energy_import_today = float(data["today"]["Purchase"])
+        self.energy_import_month = float(data["month"]["Purchase"])
+        self.energy_import_total = float(data["lifetime"]["Purchase"])
+
+        # used
+        self.power_consumption = float(data["current"]["Consumption"])
+        self.energy_consumption_today = float(data["today"]["Consumption"])
+        self.energy_consumption_month = float(data["month"]["Consumption"])
+        self.energy_consumption_total = float(data["lifetime"]["Consumption"])
+
+        # battery charge
+        self.power_charge = float(data["current"]["Charge"])
+        self.energy_power_charge_today = float(data["today"]["Charge"])
+        self.energy_power_charge_month = float(data["month"]["Charge"])
+        self.energy_power_charge_total = float(data["lifetime"]["Charge"])
+
+        # battery discharge
+        self.power_discharge = float(data["current"]["Discharge"])
+        self.energy_power_discharge_today = float(data["today"]["Discharge"])
+        self.energy_power_discharge_month = float(data["month"]["Discharge"])
+        self.energy_power_discharge_total = float(data["lifetime"]["Discharge"])
+
+        # real time solar panel performance ratio
+        self.performance_ratio = float(data["current"]["PV_ratio"])
+
+        self.self_sufficiency_today = float(data["today"]["self_sufficiency"])
+        self.self_sufficiency_month = float(data["month"]["self_sufficiency"])
+        self.self_sufficiency_total = float(data["lifetime"]["self_sufficiency"])
+
+        self.battery_level = float(data["bat"]["SOC"])
 
 
 class AESCipher:
@@ -91,6 +143,13 @@ class AESCipher:
         cipher = Cipher(algorithms.AES(AESCipher.key), modes.CBC(iv))
         decryptor = cipher.decryptor()
         padded_data = decryptor.update(decodedciphertext) + decryptor.finalize()
-        unpadder = PKCS7(16).unpadder()
-        plaintext = unpadder.update(padded_data)
+        unpadder = PKCS7(128).unpadder()
+        plaintext = unpadder.update(padded_data) + unpadder.finalize()
         return plaintext.decode("utf-8")
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    ie = IchijoEnergyAPI()
+    res = asyncio.run(ie.get_output_data())
